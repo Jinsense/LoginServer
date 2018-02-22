@@ -17,4 +17,15 @@
       <UniqueIdentifier>{c793a3e7-d62f-42e2-a401-cea13f18b925}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="LoginServer.cpp">
+      <Filter>IOCP</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="LoginServer.h">
+      <Filter>IOCP</Filter>
+    </ClInclude>
+  </ItemGroup>
 </Project>
