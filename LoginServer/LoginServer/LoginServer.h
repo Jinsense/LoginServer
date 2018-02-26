@@ -1,4 +1,7 @@
-#pragma once
+#ifndef _LOGINSERVER_IOCP_LOGINSERVER_H_
+#define _LOGINSERVER_IOCP_LOGINSERVER_H_
+
+#include "NetServer.h"
 
 class CLoginServer : public CNetServer
 {
@@ -8,13 +11,12 @@ public:
 	virtual ~CLoginServer();
 
 protected:
-
-	가상함수들...
+//	가상함수들...
 
 		//-----------------------------------------------------------
 		// 로그인서버 스케쥴러 역할
 		//-----------------------------------------------------------
-		static unsigned __stdcall	UpdateThread(void *pParam);
+	static unsigned __stdcall	UpdateThread(void *pParam);
 
 	void				Schedule_PlayerTimeout(void);
 	void				Schedule_ServerTimeout(void);
@@ -47,7 +49,7 @@ public:
 	// White IP 관련
 	/////////////////////////////////////////////////////////////
 
-	..WhiteIP 목록을 저장하구 검색, 확인 할 수 있는 기능
+//	..WhiteIP 목록을 저장하구 검색, 확인 할 수 있는 기능
 
 
 
@@ -94,6 +96,8 @@ private:
 	bool				MonitorTPS_Thread_update(void);
 
 };
+
+#endif _LOGINSERVER_IOCP_LOGINSERVER_H_
 
 
 

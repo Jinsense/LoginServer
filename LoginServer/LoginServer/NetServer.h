@@ -1,7 +1,14 @@
 #ifndef _LOGINSERVER_IOCP_NETSERVER_H_
 #define _LOGINSERVER_IOCP_NETSERVER_H_
 
+class CNetServer
+{
 
+
+
+
+
+};
 
 
 
