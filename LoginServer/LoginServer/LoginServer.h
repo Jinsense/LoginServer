@@ -1,10 +1,12 @@
 #ifndef _LOGINSERVER_NETSERVER_LOGINSERVER_H_
 #define _LOGINSERVER_NETSERVER_LOGINSERVER_H_
 
+#include <list>
+#include <map>
+
 #include "Player.h"
 #include "NetServer.h"
 
-typedef struct 
 
 class CLoginServer : public CNetServer
 {
@@ -34,13 +36,13 @@ public:
 	/////////////////////////////////////////////////////////////
 	// OnClientJoin, OnClientLeave 에서 호출됨.
 	/////////////////////////////////////////////////////////////
-	bool		InsertPlayer(CLIENT_ID ClientID);
-	bool		RemovePlayer(CLIENT_ID ClientID);
+	bool		InsertPlayer(st_Session ClientID);
+	bool		RemovePlayer(st_Session ClientID);
 
 	/////////////////////////////////////////////////////////////
 	// OnRecv 에서 로그인인증 처리 후 사용,  UpdateThread 에서 일정시간 지난 유저에 사용.
 	/////////////////////////////////////////////////////////////
-	bool		DisconnectPlayer(CLIENT_ID ClientID);
+	bool		DisconnectPlayer(st_Session ClientID);
 
 	/////////////////////////////////////////////////////////////
 	// 접속 사용자 수 
@@ -59,7 +61,7 @@ public:
 protected:
 
 	// 로그인 요청 패킷처리
-	bool				PacketProc_ReqLogin(CLIENT_ID ClientID, CPacket *pPacket);
+	bool				PacketProc_ReqLogin(st_Session ClientID, CPacket *pPacket);
 
 	// 패킷 생성부
 	bool				MakePacket_ResLogin(CPacket *pPacket, __int64 iAccountNo, WCHAR *szID, WCHAR *szNickname, BYTE byStatus);
