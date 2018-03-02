@@ -1,7 +1,10 @@
-#ifndef _LOGINSERVER_IOCP_LOGINSERVER_H_
-#define _LOGINSERVER_IOCP_LOGINSERVER_H_
+#ifndef _LOGINSERVER_NETSERVER_LOGINSERVER_H_
+#define _LOGINSERVER_NETSERVER_LOGINSERVER_H_
 
+#include "Player.h"
 #include "NetServer.h"
+
+typedef struct 
 
 class CLoginServer : public CNetServer
 {
@@ -18,8 +21,8 @@ protected:
 		//-----------------------------------------------------------
 	static unsigned __stdcall	UpdateThread(void *pParam);
 
-	void				Schedule_PlayerTimeout(void);
-	void				Schedule_ServerTimeout(void);
+	void		Schedule_PlayerTimeout(void);
+	void		Schedule_ServerTimeout(void);
 
 public:
 
@@ -31,18 +34,18 @@ public:
 	/////////////////////////////////////////////////////////////
 	// OnClientJoin, OnClientLeave 에서 호출됨.
 	/////////////////////////////////////////////////////////////
-	bool				InsertPlayer(CLIENT_ID ClientID);
-	bool				RemovePlayer(CLIENT_ID ClientID);
+	bool		InsertPlayer(CLIENT_ID ClientID);
+	bool		RemovePlayer(CLIENT_ID ClientID);
 
 	/////////////////////////////////////////////////////////////
 	// OnRecv 에서 로그인인증 처리 후 사용,  UpdateThread 에서 일정시간 지난 유저에 사용.
 	/////////////////////////////////////////////////////////////
-	bool				DisconnectPlayer(CLIENT_ID ClientID);
+	bool		DisconnectPlayer(CLIENT_ID ClientID);
 
 	/////////////////////////////////////////////////////////////
 	// 접속 사용자 수 
 	/////////////////////////////////////////////////////////////
-	int				GetPlayerCount(void);
+	int			GetPlayerCount(void);
 
 
 	/////////////////////////////////////////////////////////////
@@ -70,7 +73,7 @@ protected:
 	// 
 	// 접속자는 본 리스트로 관리함.  스레드 동기화를 위해 SRWLock 을 사용한다.
 	//-------------------------------------------------------------
-	list<CPlayer *>			_PlayerList;
+	list<CPlayer *>		_PlayerList;
 	SRWLOCK				_PlayerList_srwlock;
 
 
@@ -97,7 +100,7 @@ private:
 
 };
 
-#endif _LOGINSERVER_IOCP_LOGINSERVER_H_
+#endif _LOGINSERVER_NETSERVER_LOGINSERVER_H_
 
 
 

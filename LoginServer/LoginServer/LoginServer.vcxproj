@@ -107,7 +107,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
+      <ConformanceMode>false</ConformanceMode>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -116,17 +116,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="APIHook.cpp" />
+    <ClCompile Include="Config.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="Dump.cpp" />
     <ClCompile Include="Log.cpp" />
     <ClCompile Include="LoginServer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="NetServer.cpp" />
     <ClCompile Include="Packet.cpp" />
+    <ClCompile Include="Parse.cpp" />
     <ClCompile Include="RingBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="APIHook.h" />
     <ClInclude Include="CommonProtocol.h" />
+    <ClInclude Include="Config.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="Dump.h" />
     <ClInclude Include="LockFreeQueue.h" />
     <ClInclude Include="LockFreeStack.h" />
@@ -135,6 +140,7 @@
     <ClInclude Include="MemoryPool.h" />
     <ClInclude Include="NetServer.h" />
     <ClInclude Include="Packet.h" />
+    <ClInclude Include="Parse.h" />
     <ClInclude Include="RingBuffer.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
