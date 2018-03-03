@@ -12,7 +12,7 @@ public:
 	bool	_bChatServerComplete;		//	채팅서버 세션키 공유 확인
 	unsigned __int64	_LoginTime;		//	최초 로그인 시간 ( 타임아웃 체크 )
 
-	unsigned __int64	_ClientNo;		//	NetServer에서 생성한 클라이언트 고유번호
+	unsigned __int64	_ClientID;		//	NetServer에서 생성한 클라이언트 고유번호
 	__int64		_AccountNo;				//	DB에 저장된 계정 고유번호
 	WCHAR		_ID[20];				//	ID - null포함
 	WCHAR		_NickName[20];			//	Nick - null포함

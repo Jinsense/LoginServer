@@ -1,8 +1,11 @@
 #ifndef _LOGINSERVER_NETWORK_PACKET_H_
 #define _LOGINSERVER_NETWORK_PACKET_H_
 
+#include "Config.h"
 #include "Dump.h"
 #include "MemoryPool.h"
+
+//	extern CConfig _Config;
 
 class CPacket
 {

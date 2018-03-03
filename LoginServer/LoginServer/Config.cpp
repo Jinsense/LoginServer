@@ -4,25 +4,32 @@
 
 CConfig::CConfig()
 {
-	PACKET_CODE = NULL;
-	PACKET_KEY1 = NULL;
-	PACKET_KEY2 = NULL;
-
 	ZeroMemory(&BIND_IP, sizeof(BIND_IP));
 	BIND_IP_SIZE = eNUM_BUF;
 	BIND_PORT = NULL;
 
-	ZeroMemory(&LOGIN_SERVER_IP, sizeof(LOGIN_SERVER_IP));
-	LOGIN_IP_SIZE = eNUM_BUF;
-	LOGIN_SERVER_PORT = NULL;
-
-	ZeroMemory(&MONITORING_SERVER_IP, sizeof(MONITORING_SERVER_IP));
-	MONITORING_IP_SIZE = eNUM_BUF;
-	MONITORING_SERVER_PORT = NULL;
+	ZeroMemory(&LAN_BIND_IP, sizeof(LAN_BIND_IP));
+	LAN_BIND_IP_SIZE = eNUM_BUF;
+	LAN_BIND_PORT = NULL;
 
 	WORKER_THREAD = NULL;
+
 	CLIENT_MAX = NULL;
-	TIMEOUT_TIME = NULL;
+	PACKET_CODE = NULL;
+	PACKET_KEY1 = NULL;
+	PACKET_KEY2 = NULL;
+	LOG_LEVEL = NULL;
+
+	ZeroMemory(&ACCOUNT_IP, sizeof(ACCOUNT_IP));
+	ACCOUNT_IP_SIZE = eNUM_BUF;
+	ACCOUNT_PORT = NULL;
+	ZeroMemory(&ACCOUNT_USER, sizeof(ACCOUNT_USER));
+	ACCOUNT_USER_SIZE = eNUM_BUF;
+	ZeroMemory(&ACCOUNT_PASSWORD, sizeof(ACCOUNT_PASSWORD));
+	ACCOUNT_PASSWORD_SIZE = eNUM_BUF;
+	ZeroMemory(&ACCOUNT_DBNAME, sizeof(ACCOUNT_DBNAME));
+	ACCOUNT_DBNAME_SIZE = eNUM_BUF;
+
 }
 
 CConfig::~CConfig()
@@ -36,31 +43,28 @@ bool CConfig::Set()
 	res = _Parse.LoadFile(L"ChatServer_Config.ini");
 	if (false == res)
 		return false;
-	_Parse.ProvideArea("PACKET");
-	_Parse.GetValue("PACKET_CODE", &PACKET_CODE);
-	_Parse.GetValue("PACKET_KEY1", &PACKET_KEY1);
-	_Parse.GetValue("PACKET_KEY2", &PACKET_KEY2);
-
-	_Parse.ProvideArea("CLIENT_BIND");
+	_Parse.ProvideArea("NETWORD");
 	_Parse.GetValue("BIND_IP", &BIND_IP[0], &BIND_IP_SIZE);
 	_Parse.GetValue("BIND_PORT", &BIND_PORT);
-
-	res = _Parse.ProvideArea("CHAT_SERVER");
-	if (false == res)
-		return false;
+	_Parse.GetValue("LAN_BIND_IP", &LAN_BIND_IP[0], &LAN_BIND_IP_SIZE);
+	_Parse.GetValue("LAN_BIND_PORT", &LAN_BIND_PORT);
 	res = _Parse.GetValue("WORKER_THREAD", &WORKER_THREAD);
 	if (false == res)
 		return false;
+
+	_Parse.ProvideArea("SYSTEM");
 	_Parse.GetValue("CLIENT_MAX", &CLIENT_MAX);
-	_Parse.GetValue("TIMEOUT_TIME", &TIMEOUT_TIME);
+	_Parse.GetValue("PACKET_CODE", &PACKET_CODE);
+	_Parse.GetValue("PACKET_KEY1", &PACKET_KEY1);
+	_Parse.GetValue("PACKET_KEY2", &PACKET_KEY2);
+	_Parse.GetValue("LOG_LEVEL", &LOG_LEVEL);
 
-	_Parse.ProvideArea("LOGIN_SERVER");
-	_Parse.GetValue("LOGIN_SERVER_IP", &LOGIN_SERVER_IP[0], &LOGIN_IP_SIZE);
-	_Parse.GetValue("LOGIN_SERVER_PORT", &LOGIN_SERVER_PORT);
-
-	_Parse.ProvideArea("MONITORING_SERVER");
-	_Parse.GetValue("MONITORING_SERVER_IP", &MONITORING_SERVER_IP[0], &MONITORING_IP_SIZE);
-	_Parse.GetValue("MONITORING_SERVER_PORT", &MONITORING_SERVER_PORT);
+	_Parse.ProvideArea("DATABASE");
+	_Parse.GetValue("ACCOUNT_IP", &ACCOUNT_IP[0], &ACCOUNT_IP_SIZE);
+	_Parse.GetValue("ACCOUNT_PORT", &ACCOUNT_PORT);
+	_Parse.GetValue("ACCOUNT_USER", &ACCOUNT_USER[0], &ACCOUNT_USER_SIZE);
+	_Parse.GetValue("ACCOUNT_PASSWORD", &ACCOUNT_PASSWORD[0], &ACCOUNT_PASSWORD_SIZE);
+	_Parse.GetValue("ACCOUNT_DBNAME", &ACCOUNT_DBNAME[0], &ACCOUNT_DBNAME_SIZE);
 
 	return true;
 }

@@ -69,7 +69,10 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>$(SolutionDir)mysql/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)mysql/lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -117,6 +120,7 @@
   <ItemGroup>
     <ClCompile Include="APIHook.cpp" />
     <ClCompile Include="Config.cpp" />
+    <ClCompile Include="DB_Connector.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Dump.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -131,6 +135,7 @@
     <ClInclude Include="APIHook.h" />
     <ClInclude Include="CommonProtocol.h" />
     <ClInclude Include="Config.h" />
+    <ClInclude Include="DB_Connector.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Dump.h" />
     <ClInclude Include="LockFreeQueue.h" />

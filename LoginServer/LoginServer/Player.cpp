@@ -1,12 +1,14 @@
-#include "CPlayer.h"
+#include "Player.h"
 
 
 
 CPlayer::CPlayer()
 {
+
 }
 
 
 CPlayer::~CPlayer()
 {
+
 }

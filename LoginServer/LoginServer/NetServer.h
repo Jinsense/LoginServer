@@ -18,9 +18,9 @@
 struct st_SessionInfo
 {
 	st_SessionInfo() :
-		iSessionKey(NULL) {}
+		iClientID(NULL) {}
 
-	unsigned __int64 iSessionKey;
+	unsigned __int64 iClientID;
 	in_addr		SessionIP;
 	unsigned short	SessionPort;
 };
@@ -40,7 +40,7 @@ struct st_Session
 	long				lDisConnect;
 	long				lSendFlag;
 	long				lSendCount;
-	unsigned __int64	iSessionKey;
+	unsigned __int64	iClientID;
 	SOCKET				sock;
 	OVERLAPPED			SendOver;
 	OVERLAPPED			RecvOver;
@@ -64,18 +64,18 @@ public:
 	CNetServer();
 	~CNetServer();
 
-	void				Disconnect(unsigned __int64 iSessionKey);
+	void				Disconnect(unsigned __int64 iClientID);
 	virtual void		OnClientJoin(st_SessionInfo Info) = 0;
-	virtual void		OnClientLeave(unsigned __int64 iSessionKey) = 0;
+	virtual void		OnClientLeave(unsigned __int64 iClientID) = 0;
 	virtual void		OnConnectionRequest(WCHAR * pClientIP, int iPort) = 0;
 	virtual void		OnError(int iErrorCode, WCHAR *pError) = 0;
-	virtual bool		OnRecv(unsigned __int64 iSessionKey, CPacket *pPacket) = 0;
+	virtual bool		OnRecv(unsigned __int64 iClientID, CPacket *pPacket) = 0;
 	unsigned __int64	GetClientCount();
 
 	bool				ServerStart(const char *pOpenIP, int iPort, int iMaxWorkerThread,
 		bool bNodelay, int iMaxSession);
 	bool				ServerStop();
-	bool				SendPacket(unsigned __int64 iSessionKey, CPacket *pPacket);
+	bool				SendPacket(unsigned __int64 iClientID, CPacket *pPacket);
 	bool				GetShutDownMode() { return m_bShutdown; }
 	bool				GetWhiteIPMode() { return m_bWhiteIPMode; }
 	bool				GetMonitorMode() { return m_bMonitorFlag; }
@@ -83,7 +83,7 @@ public:
 	bool				SetWhiteIPMode(bool bFlag);
 	bool				SetMonitorMode(bool bFlag);
 
-	st_Session*			SessionAcquireLock(unsigned __int64 SessionKey);
+	st_Session*			SessionAcquireLock(unsigned __int64 iClientID);
 	bool				SessionAcquireFree(st_Session *pSession);
 
 private:
@@ -166,6 +166,7 @@ public:
 
 	CSystemLog				*m_Log;
 	SRWLOCK					m_srw;
+	CConfig					_Config;
 };
 
 
