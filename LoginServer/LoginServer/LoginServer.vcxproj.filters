@@ -19,11 +19,11 @@
     <Filter Include="NetServer">
       <UniqueIdentifier>{dcefb736-3719-44a4-bb33-37228db1991e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LanClient">
-      <UniqueIdentifier>{0445d8ef-6343-4afc-894e-305025e446ff}</UniqueIdentifier>
-    </Filter>
     <Filter Include="DataBase">
       <UniqueIdentifier>{5513be85-5602-4771-acb8-daf549d836ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LanServer">
+      <UniqueIdentifier>{0445d8ef-6343-4afc-894e-305025e446ff}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -60,6 +60,9 @@
     </ClCompile>
     <ClCompile Include="DB_Connector.cpp">
       <Filter>DataBase</Filter>
+    </ClCompile>
+    <ClCompile Include="LanServer.cpp">
+      <Filter>LanServer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,6 +110,9 @@
     </ClInclude>
     <ClInclude Include="DB_Connector.h">
       <Filter>DataBase</Filter>
+    </ClInclude>
+    <ClInclude Include="LanServer.h">
+      <Filter>LanServer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -186,6 +186,42 @@ bool CNetServer::SendPacket(unsigned __int64 iClientID, CPacket *pPacket)
 	return false;
 }
 
+bool CNetServer::SendPacketAndDisConnect(unsigned __int64 iClientID, CPacket *pPacket)
+{
+	unsigned __int64 _iIndex = GET_INDEX(_iIndex, iClientID);
+
+	st_Session *_pSession = SessionAcquireLock(iClientID);
+	if (nullptr == _pSession)
+	{
+		return false;
+	}
+
+	if (true == InterlockedCompareExchange64(&pSessionArray[_iIndex].Compare->iRelease, true, true))
+	{
+		SessionAcquireFree(_pSession);
+		return false;
+	}
+
+	if (pSessionArray[_iIndex].iClientID == iClientID)
+	{
+		m_iSendPacketTPS++;
+		pPacket->AddRef();
+		pPacket->EnCode();
+		pSessionArray[_iIndex].SendQ.Enqueue(pPacket);
+		SendPost(&pSessionArray[_iIndex]);
+		InterlockedExchange(&pSessionArray[_iIndex].lDisConnect, true);
+
+		if (true == SessionAcquireFree(_pSession))
+			return false;
+
+		return true;
+	}
+
+	SessionAcquireFree(_pSession);
+
+	return false;
+}
+
 bool CNetServer::ServerInit()
 {
 	WSADATA _Data;
@@ -715,7 +751,8 @@ void CNetServer::CompleteSend(st_Session *pSession, DWORD dwTransfered)
 		return;
 	}
 
-	InterlockedExchange(&pSession->lSendFlag, false);
+	if (false == pSession->lDisConnect)
+		InterlockedExchange(&pSession->lSendFlag, false);
 
 	SendPost(pSession);
 }

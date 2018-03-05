@@ -25,11 +25,19 @@ int main()
 		return 0;
 	}
 
+	if (false == _LoginServer._LanServer.ServerStart(_LoginServer._Config.LAN_BIND_IP,
+		_LoginServer._Config.LAN_BIND_PORT, _LoginServer._Config.WORKER_THREAD, true, 100))
+	{
+		wprintf(L"[Server :: Error] LanServer \n");
+		return 0;
+	}
+
 	if (false == _LoginServer.ServerStart(_LoginServer._Config.BIND_IP, _LoginServer._Config.BIND_PORT,
 		_LoginServer._Config.WORKER_THREAD, true, _LoginServer._Config.CLIENT_MAX))
 	{
-		wprintf(L"[Server :: Server_Start] Error\n");
-	}
+		wprintf(L"[Server :: Error] NetServer Start\n");
+		return 0;
+	}	
 
 	while (!_LoginServer.GetShutDownMode())
 	{

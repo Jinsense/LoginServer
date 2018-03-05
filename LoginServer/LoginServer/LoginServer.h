@@ -5,8 +5,11 @@
 #include <map>
 
 #include "Player.h"
+#include "LanServer.h"
 #include "NetServer.h"
 #include "DB_Connector.h"
+
+#define		df_PLAYER_TIMEOUT		10000
 
 class CLoginServer : public CNetServer
 {
@@ -33,7 +36,7 @@ protected:
 	void		Schedule_ServerTimeout(void);
 
 public:
-	//	DB 객체
+	CLanServer			_LanServer;
 	CDBConnector		_AccountDB;
 
 	/////////////////////////////////////////////////////////////
@@ -43,13 +46,13 @@ public:
 	/////////////////////////////////////////////////////////////
 	// OnClientJoin, OnClientLeave 에서 호출됨.
 	/////////////////////////////////////////////////////////////
-	bool		InsertPlayer(st_Session iClientID);
-	bool		RemovePlayer(st_Session iClientID);
+	bool		InsertPlayer(unsigned __int64 iClientID);
+	bool		RemovePlayer(unsigned __int64 iClientID);
 
 	/////////////////////////////////////////////////////////////
 	// OnRecv 에서 로그인인증 처리 후 사용,  UpdateThread 에서 일정시간 지난 유저에 사용.
 	/////////////////////////////////////////////////////////////
-	bool		DisconnectPlayer(st_Session iClientID);
+	bool		DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus);
 
 	/////////////////////////////////////////////////////////////
 	// 접속 사용자 수 
@@ -67,7 +70,7 @@ public:
 protected:
 
 	// 로그인 요청 패킷처리
-	bool				PacketProc_ReqLogin(st_Session iClientID, CPacket *pPacket);
+	bool				PacketProc_ReqLogin(unsigned __int64 iClientID, CPacket *pPacket);
 
 	// 패킷 생성부
 	bool				MakePacket_ResLogin(CPacket *pPacket, __int64 iAccountNo, WCHAR *szID, WCHAR *szNickname, BYTE byStatus);

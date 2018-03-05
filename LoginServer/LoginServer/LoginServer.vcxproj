@@ -121,6 +121,7 @@
     <ClCompile Include="APIHook.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="DB_Connector.cpp" />
+    <ClCompile Include="LanServer.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="Dump.cpp" />
     <ClCompile Include="Log.cpp" />
@@ -136,6 +137,7 @@
     <ClInclude Include="CommonProtocol.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="DB_Connector.h" />
+    <ClInclude Include="LanServer.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="Dump.h" />
     <ClInclude Include="LockFreeQueue.h" />
