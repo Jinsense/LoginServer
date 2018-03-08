@@ -25,7 +25,7 @@ int main()
 		return 0;
 	}
 
-	if (false == _LoginServer._LanServer.ServerStart(_LoginServer._Config.LAN_BIND_IP,
+	if (false == _LoginServer._pLanServer->ServerStart(_LoginServer._Config.LAN_BIND_IP,
 		_LoginServer._Config.LAN_BIND_PORT, _LoginServer._Config.WORKER_THREAD, true, 100))
 	{
 		wprintf(L"[Server :: Error] LanServer \n");

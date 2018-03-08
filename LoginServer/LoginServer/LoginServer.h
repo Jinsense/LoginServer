@@ -4,12 +4,46 @@
 #include <list>
 #include <map>
 
-#include "Player.h"
 #include "LanServer.h"
 #include "NetServer.h"
 #include "DB_Connector.h"
 
 #define		df_PLAYER_TIMEOUT		10000
+
+typedef struct st_Player
+{
+	st_Player()
+	{
+		_bGameServerComplete = false;
+		_bChatServerComplete = false;
+		_LoginTime = NULL;
+		_ClientID = NULL;
+		_AccountNo = NULL;
+
+		ZeroMemory(_ID, sizeof(_ID));
+		ZeroMemory(_NickName, sizeof(_NickName));
+		ZeroMemory(_SessionKey, sizeof(_SessionKey));
+
+		_ClientPort = NULL;
+		_Status = NULL;
+		_Parameter = 1;
+	}
+	long	_bGameServerComplete;		//	게임서버 세션키 공유 확인
+	long	_bChatServerComplete;		//	채팅서버 세션키 공유 확인
+	unsigned __int64	_LoginTime;		//	최초 로그인 시간 ( 타임아웃 체크 )
+
+	unsigned __int64	_ClientID;		//	NetServer에서 생성한 클라이언트 고유번호
+	__int64		_AccountNo;				//	DB에 저장된 계정 고유번호
+	WCHAR		_ID[20];				//	ID - null포함
+	WCHAR		_NickName[20];			//	Nick - null포함
+	char		_SessionKey[64];		//	웹서버에서 받은 세션키
+
+	in_addr		_ClientIP;				//	클라이언트 접속 IP
+	unsigned short _ClientPort;			//	클라이언트 접속 Port
+
+	int			_Status;				//	클라이언트 상태 
+	INT64		_Parameter;				//	세션키 파라미터 확인
+}PLAYER;
 
 enum en_PLAYER_STATUS
 {
@@ -20,6 +54,8 @@ enum en_PLAYER_STATUS
 	dfPLAYER_GAMESERVER_LOGIN = 4,	//	게임서버 게임 중인 상태
 	dfPLAYER_GAMESERVER_LOGOUT_REQ = 5,		//	게임서버 로그아웃 요청상태
 };
+
+class CLanServer;
 
 class CLoginServer : public CNetServer
 {
@@ -46,7 +82,7 @@ protected:
 	void		Schedule_ServerTimeout(void);
 
 public:
-	CLanServer			_LanServer;
+	CLanServer			*_pLanServer;
 	CDBConnector		_AccountDB;
 
 	/////////////////////////////////////////////////////////////
@@ -72,8 +108,8 @@ public:
 	/////////////////////////////////////////////////////////////
 	// 접속한 플레이어 찾기 
 	/////////////////////////////////////////////////////////////
-	CPlayer*	FindPlayer_ClientID(unsigned __int64 iClientID);
-	CPlayer*	FindPlayer_AccountNo(INT64 AccountNo);
+	PLAYER*	FindPlayer_ClientID(unsigned __int64 iClientID);
+	PLAYER*	FindPlayer_AccountNo(INT64 AccountNo);
 
 	/////////////////////////////////////////////////////////////
 	// 세션키 공유 완료 
@@ -105,10 +141,10 @@ protected:
 	// 
 	// 접속자는 본 리스트로 관리함.  스레드 동기화를 위해 SRWLock 을 사용한다.
 	//-------------------------------------------------------------
-	std::list<CPlayer *>	_PlayerList;
+	std::list<PLAYER*>	_PlayerList;
 	SRWLOCK					_PlayerList_srwlock;
 
-	CMemoryPool<CPlayer> *_PlayerPool;
+	CMemoryPool<PLAYER> *_PlayerPool;
 
 	//-------------------------------------------------------------
 	// 기타 모니터링용 변수,스레드 함수.

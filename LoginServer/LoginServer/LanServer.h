@@ -19,34 +19,34 @@
 #define		SET_INDEX(Index, SessionKey)		Index = Index << 48; SessionKey = Index | SessionKey;
 #define		GET_INDEX(Index, SessionKey)		Index = SessionKey >> 48;
 
-struct st_ServerInfo
+typedef struct st_ServerInfo
 {
 	int Index;
 	SOCKADDR_IN Addr;
 	WCHAR ServerName[32];
-};
+}SERVERINFO;
 
-struct st_SessionInfo
+typedef struct st_ClientInfo
 {
 	unsigned __int64 iClientID;
 	SOCKADDR_IN Addr;
 	BYTE byServerType;
 
-	st_SessionInfo() :
-		iSessionKey(NULL) {}
-};
+	st_ClientInfo() :
+		iClientID(NULL) {}
+}LANINFO;
 
-struct st_IO_RELEASE_COMPARE
+typedef struct st_RELEASE_COMPARE
 {
 	__int64	iIOCount;
 	__int64	iReleaseFlag;
 
-	st_IO_RELEASE_COMPARE() :
+	st_RELEASE_COMPARE() :
 		iIOCount(0),
 		iReleaseFlag(false) {}
-};
+}LANCOMPARE;
 
-struct st_Session
+typedef struct st_Client
 {
 	bool				bLoginFlag;
 	bool				bRelease;
@@ -60,14 +60,14 @@ struct st_Session
 	CRingBuffer			RecvQ;
 	CRingBuffer			PacketQ;
 	CLockFreeQueue<CPacket*> SendQ;
-	st_SessionInfo		Info;
+	LANINFO				Info;
 
-	st_Session() :
+	st_Client() :
 		RecvQ(LAN_QUEUE_SIZE),
 		PacketQ(LAN_QUEUE_SIZE),
 		lIOCount(0),
 		lSendFlag(true) {}
-};
+}LANSESSION;
 
 class CLoginServer;
 
@@ -96,13 +96,13 @@ public:
 	bool				SetShutDownMode(bool bFlag);
 	bool				SetWhiteIPMode(bool bFlag);
 
-	st_Session*			SessionAcquireLock(unsigned __int64 iClientID);
-	void				SessionAcquireFree(st_Session *pSession);
+	LANSESSION*			SessionAcquireLock(unsigned __int64 iClientID);
+	void				SessionAcquireFree(LANSESSION *pSession);
 
 private:
 	bool				ServerInit();
-	bool				ClientShutdown(st_Session *pSession);
-	bool				ClientRelease(st_Session *pSession);
+	bool				ClientShutdown(LANSESSION *pSession);
+	bool				ClientRelease(LANSESSION *pSession);
 
 	static unsigned int WINAPI WorkerThread(LPVOID arg)
 	{
@@ -131,12 +131,12 @@ private:
 	void				PutIndex(unsigned __int64 iIndex);
 	void				WorkerThread_Update();
 	void				AcceptThread_Update();
-	void				StartRecvPost(st_Session *pSession);
-	void				RecvPost(st_Session *pSession);
-	void				SendPost(st_Session *pSession);
-	void				CompleteRecv(st_Session *pSession, DWORD dwTransfered);
-	void				CompleteSend(st_Session *pSession, DWORD dwTransfered);
-	bool				OnRecv(st_Session *pSession, CPacket *pPacket);
+	void				StartRecvPost(LANSESSION *pSession);
+	void				RecvPost(LANSESSION *pSession);
+	void				SendPost(LANSESSION *pSession);
+	void				CompleteRecv(LANSESSION *pSession, DWORD dwTransfered);
+	void				CompleteSend(LANSESSION *pSession, DWORD dwTransfered);
+	bool				OnRecv(LANSESSION *pSession, CPacket *pPacket);
 	unsigned __int64*	GetIndex();
 
 public:
@@ -146,13 +146,13 @@ public:
 	unsigned __int64		m_iSendPacketTPS;
 	unsigned __int64		m_iConnectClient;
 
-	st_ServerInfo			_ChatServerInfo;
-	st_ServerInfo			_GameServerInfo;
+	SERVERINFO			_ChatServerInfo;
+	SERVERINFO			_GameServerInfo;
 
 private:
 	CLockFreeStack<UINT64*>	SessionStack;
-	st_IO_RELEASE_COMPARE	*pIOCompare;
-	st_Session				*pSessionArray;
+	LANCOMPARE				*pIOCompare;
+	LANSESSION				*pSessionArray;
 	SOCKET					m_listensock;
 	CRITICAL_SECTION		m_SessionCS;
 

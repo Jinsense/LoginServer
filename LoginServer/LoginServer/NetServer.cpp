@@ -745,7 +745,7 @@ void CNetServer::CompleteSend(st_Session *pSession, DWORD dwTransfered)
 		InterlockedDecrement(&pSession->lSendCount);
 	}
 
-	if (true == pSession->lDisConnect && 0 == pSession->SendQ.GetUseCount)
+	if (true == pSession->lDisConnect && 0 == pSession->SendQ.GetUseCount())
 	{
 		ClientShutdown(pSession);
 		return;

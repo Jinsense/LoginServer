@@ -14,13 +14,15 @@ CLoginServer::CLoginServer()
 	_Parameter = 0;
 
 	InitializeSRWLock(&_PlayerList_srwlock);
-	_PlayerPool = new CMemoryPool<CPlayer>();
-	_LanServer.Set(this);
+	_PlayerPool = new CMemoryPool<PLAYER>();
+	_pLanServer = new CLanServer;
+	_pLanServer->Set(this);
 }
 
 CLoginServer::~CLoginServer()
 {
 	delete _PlayerPool;
+	delete _pLanServer;
 }
 
 void CLoginServer::OnClientJoin(st_SessionInfo Info)
@@ -49,7 +51,7 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 {
 	m_iRecvPacketTPS++;
 
-	CPlayer *pPlayer = FindPlayer_ClientID(iClientID);
+	PLAYER *pPlayer = FindPlayer_ClientID(iClientID);
 	if (nullptr == pPlayer)
 	{
 		Disconnect(iClientID);
@@ -148,7 +150,7 @@ void CLoginServer::UpdateThread_Update()
 void CLoginServer::Schedule_PlayerTimeout()
 {
 	//	로그인 서버에 접속한 유저 타임아웃 체크
-	list<CPlayer*>::iterator iter;
+	list<PLAYER*>::iterator iter;
 	__int64 CurrentTick = GetTickCount64();
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
 	for (iter = _PlayerList.begin(); iter != _PlayerList.end(); iter++)
@@ -171,7 +173,7 @@ void CLoginServer::Schedule_ServerTimeout()
 bool CLoginServer::InsertPlayer(unsigned __int64 iClientID)
 {
 	//	OnClientJoin에서 호출
-	CPlayer *pPlayer = _PlayerPool->Alloc();
+	PLAYER *pPlayer = _PlayerPool->Alloc();
 	pPlayer->_ClientID = iClientID;
 
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
@@ -183,7 +185,7 @@ bool CLoginServer::InsertPlayer(unsigned __int64 iClientID)
 bool CLoginServer::RemovePlayer(unsigned __int64 iClientID)
 {
 	//	OnClientLeave에서 호출
-	list<CPlayer*>::iterator iter;
+	list<PLAYER*>::iterator iter;
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
 	for (iter = _PlayerList.begin(); iter != _PlayerList.end(); iter++)
 	{
@@ -200,8 +202,8 @@ bool CLoginServer::RemovePlayer(unsigned __int64 iClientID)
 bool CLoginServer::DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus)
 {
 	CPacket *pPacket = CPacket::Alloc();
-	CPlayer *pPlayer;
-	list<CPlayer*>::iterator iter;
+	PLAYER *pPlayer = nullptr;
+	list<PLAYER*>::iterator iter;
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
 	for (iter = _PlayerList.begin(); iter != _PlayerList.end(); iter++)
 	{
@@ -212,6 +214,11 @@ bool CLoginServer::DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus)
 		}
 	}
 	ReleaseSRWLockExclusive(&_PlayerList_srwlock);
+
+	if (nullptr == pPlayer)
+	{
+		return false;
+	}
 
 	if (dfLOGIN_STATUS_NONE == byStatus)
 	{
@@ -246,6 +253,7 @@ bool CLoginServer::DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus)
 		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_NOSERVER);
 	}
 	SendPacketAndDisConnect(iClientID, pPacket);
+	pPacket->Free();
 	return true;
 }
 
@@ -254,10 +262,10 @@ int CLoginServer::GetPlayerCount()
 	return _PlayerList.size();
 }
 
-CPlayer* CLoginServer::FindPlayer_ClientID(unsigned __int64 iClientID)
+PLAYER* CLoginServer::FindPlayer_ClientID(unsigned __int64 iClientID)
 {
-	CPlayer *pPlayer;
-	list<CPlayer*>::iterator iter;
+	PLAYER *pPlayer = nullptr;
+	list<PLAYER*>::iterator iter;
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
 	for (iter = _PlayerList.begin(); iter != _PlayerList.end(); iter++)
 	{
@@ -271,10 +279,10 @@ CPlayer* CLoginServer::FindPlayer_ClientID(unsigned __int64 iClientID)
 	return pPlayer;
 }
 
-CPlayer* CLoginServer::FindPlayer_AccountNo(INT64 AccountNo)
+PLAYER* CLoginServer::FindPlayer_AccountNo(INT64 AccountNo)
 {
-	CPlayer *pPlayer;
-	list<CPlayer*>::iterator iter;
+	PLAYER *pPlayer = nullptr;
+	list<PLAYER*>::iterator iter;
 	AcquireSRWLockExclusive(&_PlayerList_srwlock);
 	for (iter = _PlayerList.begin(); iter != _PlayerList.end(); iter++)
 	{
@@ -290,7 +298,7 @@ CPlayer* CLoginServer::FindPlayer_AccountNo(INT64 AccountNo)
 
 void CLoginServer::ChatResSessionKey(INT64 AccountNo, INT64 Parameter)
 {
-	CPlayer *pPlayer = FindPlayer_AccountNo(AccountNo);
+	PLAYER *pPlayer = FindPlayer_AccountNo(AccountNo);
 	if (nullptr == pPlayer)
 	{
 		//	세션키 공유되기 전 클라이언트 종료로 체크
@@ -324,8 +332,8 @@ void CLoginServer::GameResSessionKey(INT64 AccountNo, INT64 Parameter)
 
 bool CLoginServer::PacketProc_ReqLogin(unsigned __int64 iClientID, CPacket *pPacket)
 {
-	_LanServer.ChatReqLoginSendPacket(pPacket);
-//	_LanServer.GameReqLoginSendPacket(iClientID, pPacket);
+	_pLanServer->ChatReqLoginSendPacket(pPacket);
+//	_pLanServer->GameReqLoginSendPacket(iClientID, pPacket);
 	return true;
 }
 
@@ -336,11 +344,11 @@ bool CLoginServer::MakePacket_ResLogin(CPacket *pPacket, __int64 iAccountNo, WCH
 	pPacket->PushData((char*)szID, sizeof(szID));
 	pPacket->PushData((char*)szNickname, sizeof(szNickname));
 	//	추후 게임서버로 변경
-	pPacket->PushData((char)inet_ntoa(_LanServer._ChatServerInfo.Addr.sin_addr));
-	*pPacket << _LanServer._ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
 
-	pPacket->PushData((char)inet_ntoa(_LanServer._ChatServerInfo.Addr.sin_addr));
-	*pPacket << _LanServer._ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
 	
 	return true;
 }
@@ -390,18 +398,18 @@ void CLoginServer::MonitorThread_Update()
 			wprintf(L"	Login_SendPacket_TPS			:	%I64d	\n", m_iSendPacketTPS);
 			wprintf(L"	Login_RecvPacket_TPS			:	%I64d	\n", m_iRecvPacketTPS);
 
-			wprintf(L"	Lan_Connection			:	%I64d	\n", _LanServer.m_iConnectClient);
-			wprintf(L"	Lan_Accept_Total			:	%I64d	\n", _LanServer.m_iAcceptTotal);
-//			wprintf(L"	Lan_Accept_TPS			:	%I64d	\n", _LanServer.m_iAcceptTPS);
-			wprintf(L"	Lan_SendPacket_TPS			:	%I64d	\n", _LanServer.m_iSendPacketTPS);
-			wprintf(L"	Lan_RecvPacket_TPS			:	%I64d	\n\n", _LanServer.m_iRecvPacketTPS);
+			wprintf(L"	Lan_Connection			:	%I64d	\n", _pLanServer->m_iConnectClient);
+			wprintf(L"	Lan_Accept_Total			:	%I64d	\n", _pLanServer->m_iAcceptTotal);
+//			wprintf(L"	Lan_Accept_TPS			:	%I64d	\n", _pLanServer->m_iAcceptTPS);
+			wprintf(L"	Lan_SendPacket_TPS			:	%I64d	\n", _pLanServer->m_iSendPacketTPS);
+			wprintf(L"	Lan_RecvPacket_TPS			:	%I64d	\n\n", _pLanServer->m_iRecvPacketTPS);
 		}
 		m_iAcceptTPS = 0;
 		m_iRecvPacketTPS = 0;
 		m_iSendPacketTPS = 0;
-		_LanServer.m_iAcceptTPS = 0;
-		_LanServer.m_iSendPacketTPS = 0;
-		_LanServer.m_iRecvPacketTPS = 0;
+		_pLanServer->m_iAcceptTPS = 0;
+		_pLanServer->m_iSendPacketTPS = 0;
+		_pLanServer->m_iRecvPacketTPS = 0;
 
 	}
 	delete t;

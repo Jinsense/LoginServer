@@ -50,11 +50,11 @@ bool CLanServer::ServerStart(char *pOpenIP, int iPort, int iMaxWorkerThread,
 
 	CPacket::MemoryPoolInit();
 
-	pIOCompare = (st_IO_RELEASE_COMPARE*)_aligned_malloc(sizeof(st_IO_RELEASE_COMPARE), 16);
+	pIOCompare = (LANCOMPARE*)_aligned_malloc(sizeof(LANCOMPARE), 16);
 	pIOCompare->iIOCount = 0;
 	pIOCompare->iReleaseFlag = false;
 
-	pSessionArray = new st_Session[iMaxSession];
+	pSessionArray = new LANSESSION[iMaxSession];
 
 	for (int i = 0; i < iMaxSession; i++)
 	{
@@ -129,7 +129,7 @@ bool CLanServer::ServerStop()
 void CLanServer::Disconnect(unsigned __int64 iClientID)
 {
 	unsigned __int64  _iIndex = iClientID >> 48;
-	st_Session *_pSession = &pSessionArray[_iIndex];
+	LANSESSION *_pSession = &pSessionArray[_iIndex];
 
 	InterlockedIncrement(&_pSession->lIOCount);
 
@@ -303,7 +303,7 @@ bool CLanServer::ServerInit()
 	return true;
 }
 
-bool CLanServer::ClientShutdown(st_Session *pSession)
+bool CLanServer::ClientShutdown(LANSESSION *pSession)
 {
 	int _iRetval;
 	_iRetval = shutdown(pSession->sock, SD_BOTH);
@@ -314,9 +314,9 @@ bool CLanServer::ClientShutdown(st_Session *pSession)
 	return true;
 }
 
-bool CLanServer::ClientRelease(st_Session *pSession)
+bool CLanServer::ClientRelease(LANSESSION *pSession)
 {
-	st_IO_RELEASE_COMPARE _CheckFlag;
+	LANCOMPARE _CheckFlag;
 	_CheckFlag.iIOCount = pSession->lIOCount;
 	_CheckFlag.iReleaseFlag = pSession->bRelease;
 
@@ -359,7 +359,7 @@ void CLanServer::WorkerThread_Update()
 	while (1)
 	{
 		OVERLAPPED * _pOver = NULL;
-		st_Session * _pSession = NULL;
+		LANSESSION * _pSession = NULL;
 		DWORD _dwTrans = 0;
 
 		_dwRetval = GetQueuedCompletionStatus(m_hIOCP, &_dwTrans, (PULONG_PTR)&_pSession,
@@ -447,16 +447,16 @@ void CLanServer::AcceptThread_Update()
 	}
 }
 
-st_Session* CLanServer::SessionAcquireLock(unsigned __int64 iClientID)
+LANSESSION* CLanServer::SessionAcquireLock(unsigned __int64 iClientID)
 {
 	unsigned __int64 _iIndex = iClientID >> 48;
-	st_Session *_pSession = &pSessionArray[_iIndex];
+	LANSESSION *_pSession = &pSessionArray[_iIndex];
 	InterlockedIncrement(&_pSession->lIOCount);
 
 	return _pSession;
 }
 
-void CLanServer::SessionAcquireFree(st_Session *pSession)
+void CLanServer::SessionAcquireFree(LANSESSION *pSession)
 {
 	DWORD _dwRetval;
 	if (0 >= (_dwRetval = InterlockedDecrement(&pSession->lIOCount)))
@@ -466,7 +466,7 @@ void CLanServer::SessionAcquireFree(st_Session *pSession)
 	}
 }
 
-void CLanServer::StartRecvPost(st_Session *pSession)
+void CLanServer::StartRecvPost(LANSESSION *pSession)
 {
 	DWORD _dwRetval = 0;
 	DWORD _dwFlags = 0;
@@ -513,7 +513,7 @@ void CLanServer::StartRecvPost(st_Session *pSession)
 	}
 }
 
-void CLanServer::RecvPost(st_Session *pSession)
+void CLanServer::RecvPost(LANSESSION *pSession)
 {
 	InterlockedIncrement(&pSession->lIOCount);
 
@@ -564,7 +564,7 @@ void CLanServer::RecvPost(st_Session *pSession)
 	}
 }
 
-void CLanServer::SendPost(st_Session *pSession)
+void CLanServer::SendPost(LANSESSION *pSession)
 {
 	DWORD _dwRetval;
 	do
@@ -626,7 +626,7 @@ void CLanServer::SendPost(st_Session *pSession)
 	} while (0 != pSession->SendQ.GetUseCount());
 }
 
-void CLanServer::CompleteRecv(st_Session *pSession, DWORD dwTransfered)
+void CLanServer::CompleteRecv(LANSESSION *pSession, DWORD dwTransfered)
 {
 	pSession->RecvQ.Enqueue(dwTransfered);
 	WORD _wPayloadSize = 0;
@@ -655,7 +655,7 @@ void CLanServer::CompleteRecv(st_Session *pSession, DWORD dwTransfered)
 	RecvPost(pSession);
 }
 
-void CLanServer::CompleteSend(st_Session *pSession, DWORD dwTransfered)
+void CLanServer::CompleteSend(LANSESSION *pSession, DWORD dwTransfered)
 {
 	CPacket *_pPacket[LAN_WSABUF_NUMBER];
 	pSession->PacketQ.Peek((char*)&_pPacket, sizeof(CPacket*) *pSession->lSendCount);
@@ -670,7 +670,7 @@ void CLanServer::CompleteSend(st_Session *pSession, DWORD dwTransfered)
 	SendPost(pSession);
 }
 
-bool CLanServer::OnRecv(st_Session *pSession, CPacket *pPacket)
+bool CLanServer::OnRecv(LANSESSION *pSession, CPacket *pPacket)
 {
 	m_iRecvPacketTPS++;
 
