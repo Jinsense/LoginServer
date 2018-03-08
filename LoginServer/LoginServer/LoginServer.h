@@ -11,6 +11,16 @@
 
 #define		df_PLAYER_TIMEOUT		10000
 
+enum en_PLAYER_STATUS
+{
+	dfPLAYER_NOT_LOGIN = 0,			//	로그인 중이 아님, 로그아웃 상태
+	dfPLAYER_LOGINSERVER_REQ = 1,	//	로그인 요청 상태
+	dfPLAYER_LOGINSERVER_LOGIN = 2,	//	로그인 서버 로그인 상태
+	dfPLAYER_GAMESERVER_REQ = 3,	//	게임서버로 로그인하는 상태
+	dfPLAYER_GAMESERVER_LOGIN = 4,	//	게임서버 게임 중인 상태
+	dfPLAYER_GAMESERVER_LOGOUT_REQ = 5,		//	게임서버 로그아웃 요청상태
+};
+
 class CLoginServer : public CNetServer
 {
 public:
@@ -59,6 +69,17 @@ public:
 	/////////////////////////////////////////////////////////////
 	int			GetPlayerCount(void);
 
+	/////////////////////////////////////////////////////////////
+	// 접속한 플레이어 찾기 
+	/////////////////////////////////////////////////////////////
+	CPlayer*	FindPlayer_ClientID(unsigned __int64 iClientID);
+	CPlayer*	FindPlayer_AccountNo(INT64 AccountNo);
+
+	/////////////////////////////////////////////////////////////
+	// 세션키 공유 완료 
+	/////////////////////////////////////////////////////////////
+	void		ChatResSessionKey(INT64 AccountNo, INT64 Parameter);
+	void		GameResSessionKey(INT64 AccountNo, INT64 Parameter);
 
 	/////////////////////////////////////////////////////////////
 	// White IP 관련
@@ -101,6 +122,7 @@ protected:
 	long long			_Monitor_LoginProcessTime_Total;	// 총 합
 	long long			_Monitor_LoginProcessCall_Total;	// 로그인 처리 요청 총 합
 
+	unsigned __int64	_Parameter;
 private:
 
 	long				_Monitor_LoginSuccessCounter;

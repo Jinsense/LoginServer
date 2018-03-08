@@ -8,8 +8,8 @@ public:
 	CPlayer();
 	~CPlayer();
 
-	bool	_bGameServerComplete;		//	게임서버 세션키 공유 확인
-	bool	_bChatServerComplete;		//	채팅서버 세션키 공유 확인
+	long	_bGameServerComplete;		//	게임서버 세션키 공유 확인
+	long	_bChatServerComplete;		//	채팅서버 세션키 공유 확인
 	unsigned __int64	_LoginTime;		//	최초 로그인 시간 ( 타임아웃 체크 )
 
 	unsigned __int64	_ClientID;		//	NetServer에서 생성한 클라이언트 고유번호
@@ -21,7 +21,8 @@ public:
 	in_addr		_ClientIP;				//	클라이언트 접속 IP
 	unsigned short _ClientPort;			//	클라이언트 접속 Port
 
-
+	int			_Status;				//	클라이언트 상태 
+	INT64		_Parameter;				//	세션키 파라미터 확인
 };
 
 #endif _LOGINSERVER_NETSERVER_PLAYER_H_

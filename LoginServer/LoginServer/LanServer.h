@@ -21,13 +21,14 @@
 
 struct st_ServerInfo
 {
+	int Index;
 	SOCKADDR_IN Addr;
 	WCHAR ServerName[32];
 };
 
 struct st_SessionInfo
 {
-	unsigned __int64 iSessionKey;
+	unsigned __int64 iClientID;
 	SOCKADDR_IN Addr;
 	BYTE byServerType;
 
@@ -52,7 +53,7 @@ struct st_Session
 	long				lIOCount;
 	long				lSendFlag;
 	long				lSendCount;
-	unsigned __int64	iSessionKey;
+	unsigned __int64	iClientID;
 	SOCKET				sock;
 	OVERLAPPED			SendOver;
 	OVERLAPPED			RecvOver;
@@ -76,9 +77,9 @@ public:
 	CLanServer();
 	~CLanServer();
 
-	void				Disconnect(unsigned __int64 iSessionKey);
+	void				Disconnect(unsigned __int64 iClientID);
 	/*virtual void		OnClientJoin(st_SessionInfo *pInfo) = 0;
-	virtual void		OnClientLeave(unsigned __int64 iSessionKey) = 0;
+	virtual void		OnClientLeave(unsigned __int64 iClientID) = 0;
 	virtual void		OnConnectionRequest(WCHAR * pClientIP, int iPort) = 0;
 	virtual void		OnError(int iErrorCode, WCHAR *pError) = 0;*/
 	unsigned __int64	GetClientCount();
@@ -87,13 +88,15 @@ public:
 	bool				ServerStart(char *pOpenIP, int iPort, int iMaxWorkerThread,
 		bool bNodelay, int iMaxSession);
 	bool				ServerStop();
-	bool				SendPacket(unsigned __int64 iSessionKey, CPacket *pPacket);
+	bool				SendPacket(unsigned __int64 iClientID, CPacket *pPacket);
+	bool				ChatReqLoginSendPacket(CPacket *pPacket);
+	bool				GameReqLoginSendPacket(CPacket *pPacket);
 	bool				GetShutDownMode() { return m_bShutdown; }
 	bool				GetWhiteIPMode() { return m_bWhiteIPMode; }
 	bool				SetShutDownMode(bool bFlag);
 	bool				SetWhiteIPMode(bool bFlag);
 
-	st_Session*			SessionAcquireLock(unsigned __int64 SessionKey);
+	st_Session*			SessionAcquireLock(unsigned __int64 iClientID);
 	void				SessionAcquireFree(st_Session *pSession);
 
 private:
@@ -164,7 +167,7 @@ private:
 
 	unsigned __int64		m_iAllThreadCnt;
 	unsigned __int64		*pIndex;
-	unsigned __int64		m_iSessionKeyCnt;
+	unsigned __int64		iClientIDCnt;
 
 	CLoginServer			*pLogin;
 };
