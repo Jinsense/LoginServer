@@ -39,14 +39,13 @@ bool CLanServer::Set(CLoginServer *pLoginServer)
 	return true;
 }
 
-bool CLanServer::ServerStart(char *pOpenIP, int iPort, int iMaxWorkerThread,
+bool CLanServer::ServerStart(WCHAR *pOpenIP, int iPort, int iMaxWorkerThread,
 	bool bNodelay, int iMaxSession)
 {
 	wprintf(L"[Server :: Server_Start]	Start\n");
 
 	int _iRetval = 0;
 	setlocale(LC_ALL, "Korean");
-	InitializeCriticalSection(&m_SessionCS);
 
 	CPacket::MemoryPoolInit();
 

@@ -30,6 +30,7 @@ CConfig::CConfig()
 	ZeroMemory(&ACCOUNT_DBNAME, sizeof(ACCOUNT_DBNAME));
 	ACCOUNT_DBNAME_SIZE = eNUM_BUF;
 
+	ZeroMemory(&IP, sizeof(IP));
 }
 
 CConfig::~CConfig()
@@ -40,13 +41,21 @@ CConfig::~CConfig()
 bool CConfig::Set()
 {
 	bool res = true;
-	res = _Parse.LoadFile(L"ChatServer_Config.ini");
+	res = _Parse.LoadFile(L"LoginServer_Config.ini");
 	if (false == res)
 		return false;
-	_Parse.ProvideArea("NETWORD");
-	_Parse.GetValue("BIND_IP", &BIND_IP[0], &BIND_IP_SIZE);
-	_Parse.GetValue("BIND_PORT", &BIND_PORT);
-	_Parse.GetValue("LAN_BIND_IP", &LAN_BIND_IP[0], &LAN_BIND_IP_SIZE);
+	res = _Parse.ProvideArea("NETWORK");
+	if (false == res)
+		return false;
+	res = _Parse.GetValue("BIND_IP", &IP[0], &BIND_IP_SIZE);
+	if (false == res)
+		return false;
+	_Parse.UTF8toUTF16(IP, BIND_IP, sizeof(BIND_IP));
+	res = _Parse.GetValue("BIND_PORT", &BIND_PORT);
+	if (false == res)
+		return false;
+	_Parse.GetValue("LAN_BIND_IP", &IP[0], &LAN_BIND_IP_SIZE);
+	_Parse.UTF8toUTF16(IP, LAN_BIND_IP, sizeof(LAN_BIND_IP));
 	_Parse.GetValue("LAN_BIND_PORT", &LAN_BIND_PORT);
 	res = _Parse.GetValue("WORKER_THREAD", &WORKER_THREAD);
 	if (false == res)

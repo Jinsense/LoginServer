@@ -36,7 +36,7 @@ CNetServer::~CNetServer()
 
 }
 
-bool CNetServer::ServerStart(const char *pOpenIP, int iPort, int iMaxWorkerThread,
+bool CNetServer::ServerStart(WCHAR *pOpenIP, int iPort, int iMaxWorkerThread,
 	bool bNodelay, int iMaxSession)
 {
 	wprintf(L"[Server :: Server_Start]	Start\n");

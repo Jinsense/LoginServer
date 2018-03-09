@@ -73,7 +73,7 @@ public:
 	virtual bool		OnRecv(unsigned __int64 iClientID, CPacket *pPacket) = 0;
 	unsigned __int64	GetClientCount();
 
-	bool				ServerStart(const char *pOpenIP, int iPort, int iMaxWorkerThread,
+	bool				ServerStart(WCHAR *pOpenIP, int iPort, int iMaxWorkerThread,
 		bool bNodelay, int iMaxSession);
 	bool				ServerStop();
 	bool				SendPacket(unsigned __int64 iClientID, CPacket *pPacket);

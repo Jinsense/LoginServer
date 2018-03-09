@@ -370,10 +370,12 @@ void CLoginServer::MonitorThread_Update()
 	int min = t->tm_min;
 	int sec = t->tm_sec;
 
-	while (m_bShutdown)
+	while (!m_bShutdown)
 	{
 		Sleep(1000);
 		timer = time(NULL);
+		localtime_s(t, &timer);
+
 		if (true == m_bMonitorFlag)
 		{
 			wprintf(L"	[ServerStart : %d/%d/%d %d:%d:%d]\n\n", year, month, day, hour, min, sec);
@@ -384,25 +386,28 @@ void CLoginServer::MonitorThread_Update()
 			wprintf(L"	MemoryPool_AllocCount		:	%d	\n\n", CPacket::GetAllocPool());
 
 			wprintf(L"	LoginWait			:	%d	\n", _Monitor_LoginWait);
-			wprintf(L"	SessionKey_UseCount			:	%d	\n\n", GetPlayerCount());
+			wprintf(L"	SessionKey_UseCount		:	%d	\n\n", GetPlayerCount());
 
 			wprintf(L"	LoginSuccessTPS			:	%d	\n", _Monitor_LoginSuccessTPS);
-			wprintf(L"	LoginSuccessCounter			:	%d	\n\n", _Monitor_LoginSuccessCounter);
+			wprintf(L"	LoginSuccessCounter		:	%d	\n\n", _Monitor_LoginSuccessCounter);
 
 			wprintf(L"	LoginProcessTime_Max		:	%d	\n", _Monitor_LoginProcessTime_Max);
-			wprintf(L"	LoginProcessTime_Min			:	%d	\n", _Monitor_LoginProcessTime_Min);
-			wprintf(L"	LoginProcessTime_Avr			:	%I64d	\n\n", _Monitor_LoginProcessTime_Total/ _Monitor_LoginProcessCall_Total);
-
-			wprintf(L"	Login_Accept_Total			:	%I64d	\n", m_iAcceptTotal);
-			wprintf(L"	Login_Accept_TPS			:	%I64d	\n", m_iAcceptTPS);
-			wprintf(L"	Login_SendPacket_TPS			:	%I64d	\n", m_iSendPacketTPS);
-			wprintf(L"	Login_RecvPacket_TPS			:	%I64d	\n", m_iRecvPacketTPS);
+			wprintf(L"	LoginProcessTime_Min		:	%d	\n", _Monitor_LoginProcessTime_Min);
+			if (0 != _Monitor_LoginProcessCall_Total)
+				wprintf(L"	LoginProcessTime_Avr		:	%lf	\n", _Monitor_LoginProcessTime_Total % _Monitor_LoginProcessCall_Total);
+			else
+				wprintf(L"	LoginProcessTime_Avr		:	0	\n");
+			wprintf(L"\n");
+			wprintf(L"	Login_Accept_Total		:	%I64d	\n", m_iAcceptTotal);
+			wprintf(L"	Login_Accept_TPS		:	%I64d	\n", m_iAcceptTPS);
+			wprintf(L"	Login_SendPacket_TPS		:	%I64d	\n", m_iSendPacketTPS);
+			wprintf(L"	Login_RecvPacket_TPS		:	%I64d	\n\n", m_iRecvPacketTPS);
 
 			wprintf(L"	Lan_Connection			:	%I64d	\n", _pLanServer->m_iConnectClient);
-			wprintf(L"	Lan_Accept_Total			:	%I64d	\n", _pLanServer->m_iAcceptTotal);
+			wprintf(L"	Lan_Accept_Total		:	%I64d	\n", _pLanServer->m_iAcceptTotal);
 //			wprintf(L"	Lan_Accept_TPS			:	%I64d	\n", _pLanServer->m_iAcceptTPS);
-			wprintf(L"	Lan_SendPacket_TPS			:	%I64d	\n", _pLanServer->m_iSendPacketTPS);
-			wprintf(L"	Lan_RecvPacket_TPS			:	%I64d	\n\n", _pLanServer->m_iRecvPacketTPS);
+			wprintf(L"	Lan_SendPacket_TPS		:	%I64d	\n", _pLanServer->m_iSendPacketTPS);
+			wprintf(L"	Lan_RecvPacket_TPS		:	%I64d	\n\n", _pLanServer->m_iRecvPacketTPS);
 		}
 		m_iAcceptTPS = 0;
 		m_iRecvPacketTPS = 0;

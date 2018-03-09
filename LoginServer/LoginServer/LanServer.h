@@ -85,7 +85,7 @@ public:
 	unsigned __int64	GetClientCount();
 
 	bool				Set(CLoginServer *pLoginServer);
-	bool				ServerStart(char *pOpenIP, int iPort, int iMaxWorkerThread,
+	bool				ServerStart(WCHAR *pOpenIP, int iPort, int iMaxWorkerThread,
 		bool bNodelay, int iMaxSession);
 	bool				ServerStop();
 	bool				SendPacket(unsigned __int64 iClientID, CPacket *pPacket);
@@ -154,7 +154,6 @@ private:
 	LANCOMPARE				*pIOCompare;
 	LANSESSION				*pSessionArray;
 	SOCKET					m_listensock;
-	CRITICAL_SECTION		m_SessionCS;
 
 	HANDLE					m_hIOCP;
 	HANDLE					m_hWorkerThread[100];

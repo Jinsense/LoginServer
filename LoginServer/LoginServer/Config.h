@@ -7,7 +7,7 @@ class CConfig
 {
 	enum eNumConfig
 	{
-		eNUM_BUF = 100,
+		eNUM_BUF = 20,
 	};
 public:
 	CConfig();
@@ -17,11 +17,11 @@ public:
 
 public:
 	//	NETWORK
-	char BIND_IP[20];
+	WCHAR BIND_IP[20];
 	int BIND_IP_SIZE;
 	int BIND_PORT;
 
-	char LAN_BIND_IP[20];
+	WCHAR LAN_BIND_IP[20];
 	int LAN_BIND_IP_SIZE;
 	int LAN_BIND_PORT;
 
@@ -46,6 +46,9 @@ public:
 	int ACCOUNT_DBNAME_SIZE;
 
 	CINIParse _Parse;
+
+private:
+	char IP[20];
 };
 
 #endif _LOGINSERVER_PARSE_CONFIG_H_
