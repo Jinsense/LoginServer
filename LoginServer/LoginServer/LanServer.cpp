@@ -180,6 +180,8 @@ bool CLanServer::SendPacket(unsigned __int64 iClientID, CPacket *pPacket)
 
 		m_iSendPacketTPS++;
 		pPacket->AddRef();
+
+
 		pPacket->SetHeader_CustomShort(pPacket->GetDataSize());
 		pSessionArray[_iIndex].SendQ.Enqueue(pPacket);
 
@@ -590,8 +592,8 @@ void CLanServer::SendPost(LANSESSION *pSession)
 			{
 				pSession->SendQ.Dequeue(_pPacket);
 				pSession->PacketQ.Enqueue((char*)&_pPacket, sizeof(CPacket*));
-				_Buf[i].buf = _pPacket->GetBufferPtr();
-				_Buf[i].len = _pPacket->GetPacketSize();
+				_Buf[i].buf = _pPacket->GetReadPtr();
+				_Buf[i].len = _pPacket->GetPacketSize_CustomHeader(static_cast<int>(CPacket::en_PACKETDEFINE::SHORT_HEADER_SIZE));
 			}
 		}
 		else
@@ -602,11 +604,12 @@ void CLanServer::SendPost(LANSESSION *pSession)
 			{
 				pSession->SendQ.Dequeue(_pPacket);
 				pSession->PacketQ.Enqueue((char*)&_pPacket, sizeof(CPacket*));
-				_Buf[i].buf = _pPacket->GetBufferPtr();
-				_Buf[i].len = _pPacket->GetPacketSize();
+				_Buf[i].buf = _pPacket->GetReadPtr();
+				_Buf[i].len = _pPacket->GetPacketSize_CustomHeader(static_cast<int>(CPacket::en_PACKETDEFINE::SHORT_HEADER_SIZE));
 			}
 		}
 		InterlockedIncrement(&pSession->lIOCount);
+		ZeroMemory(&pSession->SendOver, sizeof(pSession->SendOver));
 		if (SOCKET_ERROR == WSASend(pSession->sock, _Buf, _lBufNum,
 			NULL, 0, &pSession->SendOver, NULL))
 		{
@@ -645,6 +648,7 @@ void CLanServer::CompleteRecv(LANSESSION *pSession, DWORD dwTransfered)
 		}
 		pSession->RecvQ.Dequeue(_pPacket->GetWritePtr(), _wPayloadSize);
 		_pPacket->PushData(_wPayloadSize);
+		_pPacket->PopData(sizeof(CPacket::st_PACKET_HEADER));
 
 		if (false == OnRecv(pSession, _pPacket))
 			return;

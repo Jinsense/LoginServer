@@ -236,10 +236,10 @@ private:
 	//-------------------------------------------------------------
 	MYSQL_RES	*_pSqlResult;
 
-	WCHAR		_szDBIP[16];
-	WCHAR		_szDBUser[64];
-	WCHAR		_szDBPassword[64];
-	WCHAR		_szDBName[64];
+	char		_szDBIP[16];
+	char		_szDBUser[64];
+	char		_szDBPassword[64];
+	char		_szDBName[64];
 	int			_iDBPort;
 
 

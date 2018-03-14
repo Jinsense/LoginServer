@@ -37,6 +37,9 @@ bool CDBConnector::Set(char *szDBIP, char *szUser, char *szPassword, char *szDBN
 	_iDBPort = iDBPort;
 	_Log = _Log->GetInstance();
 
+	if (false == Connect())
+		return false;
+
 	return true;
 }
 
