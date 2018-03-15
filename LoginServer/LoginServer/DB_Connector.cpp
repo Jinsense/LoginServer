@@ -168,6 +168,12 @@ void CDBConnector::FreeResult()
 	return;
 }
 
+int CDBConnector::FetchNum()
+{
+	int totalrows = mysql_num_rows(_pSqlResult);
+	return mysql_num_fields(_pSqlResult);
+}
+
 void CDBConnector::SaveLastError()
 {
 	//	실패한 에러 코드와 에러번호 저장

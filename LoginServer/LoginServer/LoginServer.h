@@ -33,7 +33,7 @@ typedef struct st_Player
 	unsigned __int64	_LoginTime;		//	최초 로그인 시간 ( 타임아웃 체크 )
 
 	unsigned __int64	_ClientID;		//	NetServer에서 생성한 클라이언트 고유번호
-	__int64		_AccountNo;				//	DB에 저장된 계정 고유번호
+	INT64		_AccountNo;				//	DB에 저장된 계정 고유번호
 	WCHAR		_ID[20];				//	ID - null포함
 	WCHAR		_NickName[20];			//	Nick - null포함
 	char		_SessionKey[64];		//	웹서버에서 받은 세션키
@@ -41,7 +41,7 @@ typedef struct st_Player
 	in_addr		_ClientIP;				//	클라이언트 접속 IP
 	unsigned short _ClientPort;			//	클라이언트 접속 Port
 
-	int			_Status;				//	클라이언트 상태 
+	int		_Status;				//	클라이언트 상태 
 	INT64		_Parameter;				//	세션키 파라미터 확인
 }PLAYER;
 
@@ -89,6 +89,9 @@ public:
 	// 사용자 관리함수들.  
 	/////////////////////////////////////////////////////////////
 
+	void		UTF8toUTF16(const char *szText, WCHAR *szBuf, int iBufLen);
+	void		UTF16toUTF8(WCHAR *szText, char *szBuf, int iBufLen);
+
 	/////////////////////////////////////////////////////////////
 	// OnClientJoin, OnClientLeave 에서 호출됨.
 	/////////////////////////////////////////////////////////////
@@ -129,20 +132,16 @@ protected:
 	// 로그인 요청 패킷처리
 	bool				PacketProc_ReqLogin(unsigned __int64 iClientID, CPacket *pPacket);
 
-	// 패킷 생성부
-	bool				MakePacket_ResLogin(CPacket *pPacket, __int64 iAccountNo, WCHAR *szID, WCHAR *szNickname, BYTE byStatus);
-
-
 
 protected:
-
+	SRWLOCK		_DB_srwlock;
 	//-------------------------------------------------------------
 	// 접속자 관리.
 	// 
 	// 접속자는 본 리스트로 관리함.  스레드 동기화를 위해 SRWLock 을 사용한다.
 	//-------------------------------------------------------------
 	std::list<PLAYER*>	_PlayerList;
-	SRWLOCK					_PlayerList_srwlock;
+	SRWLOCK				_PlayerList_srwlock;
 
 	CMemoryPool<PLAYER> *_PlayerPool;
 

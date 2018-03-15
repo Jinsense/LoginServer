@@ -647,7 +647,7 @@ void CLanServer::CompleteRecv(LANSESSION *pSession, DWORD dwTransfered)
 			return;
 		}
 		pSession->RecvQ.Dequeue(_pPacket->GetWritePtr(), _wPayloadSize);
-		_pPacket->PushData(_wPayloadSize);
+		_pPacket->PushData(_wPayloadSize + sizeof(CPacket::st_PACKET_HEADER));
 		_pPacket->PopData(sizeof(CPacket::st_PACKET_HEADER));
 
 		if (false == OnRecv(pSession, _pPacket))

@@ -13,6 +13,7 @@ CLoginServer::CLoginServer()
 	_Monitor_LoginSuccessCounter = 0;
 	_Parameter = 0;
 
+	InitializeSRWLock(&_DB_srwlock);
 	InitializeSRWLock(&_PlayerList_srwlock);
 	_PlayerPool = new CMemoryPool<PLAYER>();
 	_pLanServer = new CLanServer;
@@ -63,20 +64,24 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 
 	if (en_PACKET_CS_LOGIN_REQ_LOGIN == Type)
 	{
+	//	int iNum;
 		bool bRes;
 		
 		*pPacket >> pPlayer->_AccountNo;
 		pPacket->PopData(&pPlayer->_SessionKey[0], sizeof(pPlayer->_SessionKey[0]));
 		
+		AcquireSRWLockExclusive(&_PlayerList_srwlock);
 //		_AccountDB.Query(L"BEGIN");
 		bRes = _AccountDB.Query(L"SELECT * FROM v_account WHERE accountno = %d", pPlayer->_AccountNo);
+//		iNum = _AccountDB.FetchNum();
 		MYSQL_ROW sql_row = _AccountDB.FetchRow();
-
+	
 		if (NULL == sql_row || false == bRes)
 		{
 			DisconnectPlayer(iClientID, dfLOGIN_STATUS_FAIL);
 //			_AccountDB.Query(L"ROLLBACK");
 			_AccountDB.FreeResult();
+			ReleaseSRWLockExclusive(&_PlayerList_srwlock);
 			return false;
 		}
 
@@ -86,10 +91,21 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 		//	2 - usernick
 		//	3 - sessionkey
 		//	4 - status
-		pPlayer->_ID[0] = (WCHAR)sql_row[1];
-		pPlayer->_NickName[0] = (WCHAR)sql_row[2];
-		pPlayer->_SessionKey[0] = (char)sql_row[3];
-		pPlayer->_Status = (int)sql_row[4];
+
+		UTF8toUTF16(sql_row[1], pPlayer->_ID, sizeof(pPlayer->_ID));
+		UTF8toUTF16(sql_row[2], pPlayer->_NickName, sizeof(pPlayer->_NickName));
+//		pPlayer->_SessionKey[0] = *sql_row[3];
+		if (NULL != sql_row[3])
+			strcpy_s(pPlayer->_SessionKey, sizeof(pPlayer->_SessionKey), sql_row[3]);
+		else
+			pPlayer->_SessionKey[0] = NULL;
+
+		pPlayer->_Status = atoi(sql_row[4]);
+//		pPlayer->_Status = (int)*sql_row[4];
+
+
+		_AccountDB.FreeResult();		
+	
 
 		if (dfPLAYER_NOT_LOGIN != pPlayer->_Status)
 		{
@@ -100,22 +116,27 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 				//	추후 게임서버에 종료 요청을 보내야함
 			}
 			DisconnectPlayer(iClientID, dfLOGIN_STATUS_GAME);
+
 //			_AccountDB.Query(L"ROLLBACK");
-			_AccountDB.FreeResult();
+//			_AccountDB.FreeResult();
+//			ReleaseSRWLockExclusive(&_PlayerList_srwlock);
 			return false;
 		}
-		_AccountDB.FreeResult();
+		ReleaseSRWLockExclusive(&_PlayerList_srwlock);
 		/*
 		pPlayer->_Status = dfPLAYER_LOGINSERVER_REQ;
 		//	DB의 세션 상태 변경 
-		_AccountDB.Query_Save(L"UPDATE v_account SET status = %d where accountno = %d", dfPLAYER_LOGINSERVER_REQ, pPlayer->_AccountNo);
+		AcquireSRWLockExclusive(&_PlayerList_srwlock);
+		_AccountDB.Query_Save(L"UPDATE v_account SET status = %d where accountno = %d", itoa(dfPLAYER_LOGINSERVER_REQ), pPlayer->_AccountNo);
 //		_AccountDB.Query(L"COMMIT");
 		_AccountDB.FreeResult();
+		ReleaseSRWLockExclusive(&_PlayerList_srwlock);
 		*/
+		Type = en_PACKET_SS_REQ_NEW_CLIENT_LOGIN;
 		CPacket *pNewPacket = CPacket::Alloc();
-		*pPacket << pPlayer->_AccountNo;
-		pPacket->PushData(&pPlayer->_SessionKey[0], sizeof(pPlayer->_SessionKey));
-		*pPacket << pPlayer->_Parameter++;
+		*pNewPacket << Type << pPlayer->_AccountNo;
+		pNewPacket->PushData(&pPlayer->_SessionKey[0], sizeof(pPlayer->_SessionKey));
+		*pNewPacket << pPlayer->_Parameter++;
 
 		PacketProc_ReqLogin(iClientID, pNewPacket);
 		pNewPacket->Free();
@@ -170,6 +191,20 @@ void CLoginServer::Schedule_ServerTimeout()
 	return;
 }
 
+void CLoginServer::UTF8toUTF16(const char *szText, WCHAR *szBuf, int iBufLen)
+{
+	int iRe = MultiByteToWideChar(CP_UTF8, 0, szText, strlen(szText), szBuf, iBufLen);
+	if (iRe < iBufLen)
+		szBuf[iRe] = L'\0';
+	return;
+}
+
+void CLoginServer::UTF16toUTF8(WCHAR *szText, char *szBuf, int iBufLen)
+{
+	int iRe = WideCharToMultiByte(CP_UTF8, 0, szText, lstrlenW(szText), szBuf, iBufLen, NULL, NULL);
+	return;
+}
+
 bool CLoginServer::InsertPlayer(unsigned __int64 iClientID)
 {
 	//	OnClientJoin에서 호출
@@ -220,38 +255,19 @@ bool CLoginServer::DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus)
 		return false;
 	}
 
-	if (dfLOGIN_STATUS_NONE == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_NONE);
-	}
-	else if(dfLOGIN_STATUS_FAIL == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_NONE);
-	}
-	else if (dfLOGIN_STATUS_OK == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_OK);
-	}
-	else if (dfLOGIN_STATUS_GAME == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_GAME);
-	}
-	else if (dfLOGIN_STATUS_ACCOUNT_MISS == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_ACCOUNT_MISS);
-	}
-	else if (dfLOGIN_STATUS_SESSION_MISS == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_SESSION_MISS);
-	}
-	else if (dfLOGIN_STATUS_STATUS_MISS == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_STATUS_MISS);
-	}
-	else if (dfLOGIN_STATUS_NOSERVER == byStatus)
-	{
-		MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_NOSERVER);
-	}
+	WORD Type = en_PACKET_CS_LOGIN_RES_LOGIN;
+	BYTE Status = byStatus;
+
+	*pPacket << Type << pPlayer->_AccountNo << Status;
+	pPacket->PushData((char*)pPlayer->_ID, sizeof(pPlayer->_ID));
+	pPacket->PushData((char*)pPlayer->_NickName, sizeof(pPlayer->_NickName));
+	//	추후 게임서버로 변경
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+
 	SendPacketAndDisConnect(iClientID, pPacket);
 	pPacket->Free();
 	return true;
@@ -312,8 +328,20 @@ void CLoginServer::ChatResSessionKey(INT64 AccountNo, INT64 Parameter)
 //	게임서버 추가 후 주석 해제
 //	pPlayer->_Status = dfPLAYER_GAMESERVER_REQ;
 
+	WORD Type = en_PACKET_CS_LOGIN_RES_LOGIN;
+	BYTE Status = dfLOGIN_STATUS_OK;
+
 	CPacket *pPacket = CPacket::Alloc();
-	MakePacket_ResLogin(pPacket, pPlayer->_AccountNo, pPlayer->_ID, pPlayer->_NickName, dfLOGIN_STATUS_OK);
+	*pPacket << Type << pPlayer->_AccountNo << Status;
+	pPacket->PushData((char*)pPlayer->_ID, sizeof(pPlayer->_ID));
+	pPacket->PushData((char*)pPlayer->_NickName, sizeof(pPlayer->_NickName));
+	//	추후 게임서버로 변경
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+
+	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+	
 	SendPacketAndDisConnect(pPlayer->_ClientID, pPacket);
 	pPacket->Free();
 
@@ -334,22 +362,6 @@ bool CLoginServer::PacketProc_ReqLogin(unsigned __int64 iClientID, CPacket *pPac
 {
 	_pLanServer->ChatReqLoginSendPacket(pPacket);
 //	_pLanServer->GameReqLoginSendPacket(iClientID, pPacket);
-	return true;
-}
-
-bool CLoginServer::MakePacket_ResLogin(CPacket *pPacket, __int64 iAccountNo, WCHAR *szID, WCHAR *szNickname, BYTE byStatus)
-{
-	WORD Type = en_PACKET_CS_LOGIN_RES_LOGIN;
-	*pPacket << Type << iAccountNo << byStatus;
-	pPacket->PushData((char*)szID, sizeof(szID));
-	pPacket->PushData((char*)szNickname, sizeof(szNickname));
-	//	추후 게임서버로 변경
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
-
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
-	
 	return true;
 }
 
