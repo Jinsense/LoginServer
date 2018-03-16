@@ -68,7 +68,7 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 		bool bRes;
 		
 		*pPacket >> pPlayer->_AccountNo;
-		pPacket->PopData(&pPlayer->_SessionKey[0], sizeof(pPlayer->_SessionKey[0]));
+		pPacket->PopData((char*)&pPlayer->_SessionKey, sizeof(pPlayer->_SessionKey));
 		
 		AcquireSRWLockExclusive(&_PlayerList_srwlock);
 //		_AccountDB.Query(L"BEGIN");
@@ -97,8 +97,6 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 //		pPlayer->_SessionKey[0] = *sql_row[3];
 		if (NULL != sql_row[3])
 			strcpy_s(pPlayer->_SessionKey, sizeof(pPlayer->_SessionKey), sql_row[3]);
-		else
-			pPlayer->_SessionKey[0] = NULL;
 
 		pPlayer->_Status = atoi(sql_row[4]);
 //		pPlayer->_Status = (int)*sql_row[4];
@@ -191,6 +189,14 @@ void CLoginServer::Schedule_ServerTimeout()
 	return;
 }
 
+void CLoginServer::ConfigSet()
+{
+	memcpy_s(_pLanServer->_ChatServerInfo.IP, sizeof(_pLanServer->_ChatServerInfo.IP), _Config.CHAT_IP, sizeof(_Config.CHAT_IP));
+	_pLanServer->_ChatServerInfo.Port = _Config.CHAT_PORT;
+
+	return;
+}
+
 void CLoginServer::UTF8toUTF16(const char *szText, WCHAR *szBuf, int iBufLen)
 {
 	int iRe = MultiByteToWideChar(CP_UTF8, 0, szText, strlen(szText), szBuf, iBufLen);
@@ -262,11 +268,15 @@ bool CLoginServer::DisconnectPlayer(unsigned __int64 iClientID, BYTE byStatus)
 	pPacket->PushData((char*)pPlayer->_ID, sizeof(pPlayer->_ID));
 	pPacket->PushData((char*)pPlayer->_NickName, sizeof(pPlayer->_NickName));
 	//	추후 게임서버로 변경
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char*)_pLanServer->_ChatServerInfo.IP, sizeof(_pLanServer->_ChatServerInfo.IP));
+	*pPacket << _pLanServer->_ChatServerInfo.Port;
+//	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+//	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
 
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char*)_pLanServer->_ChatServerInfo.IP, sizeof(_pLanServer->_ChatServerInfo.IP));
+	*pPacket << _pLanServer->_ChatServerInfo.Port;
+//	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+//	*pPacket << _pLanServer->_ChatServerInfo.sin_port;
 
 	SendPacketAndDisConnect(iClientID, pPacket);
 	pPacket->Free();
@@ -336,11 +346,15 @@ void CLoginServer::ChatResSessionKey(INT64 AccountNo, INT64 Parameter)
 	pPacket->PushData((char*)pPlayer->_ID, sizeof(pPlayer->_ID));
 	pPacket->PushData((char*)pPlayer->_NickName, sizeof(pPlayer->_NickName));
 	//	추후 게임서버로 변경
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char*)_pLanServer->_ChatServerInfo.IP, sizeof(_pLanServer->_ChatServerInfo.IP));
+	*pPacket << _pLanServer->_ChatServerInfo.Port;
+//	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+//	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
 
-	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
-	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
+	pPacket->PushData((char*)_pLanServer->_ChatServerInfo.IP, sizeof(_pLanServer->_ChatServerInfo.IP));
+	*pPacket << _pLanServer->_ChatServerInfo.Port;
+//	pPacket->PushData((char)inet_ntoa(_pLanServer->_ChatServerInfo.Addr.sin_addr));
+//	*pPacket << _pLanServer->_ChatServerInfo.Addr.sin_port;
 	
 	SendPacketAndDisConnect(pPlayer->_ClientID, pPacket);
 	pPacket->Free();

@@ -22,7 +22,8 @@
 typedef struct st_ServerInfo
 {
 	int Index;
-	SOCKADDR_IN Addr;
+	WCHAR IP[16];
+	USHORT Port;
 	WCHAR ServerName[32];
 }SERVERINFO;
 

@@ -689,14 +689,12 @@ bool CLanServer::OnRecv(LANSESSION *pSession, CPacket *pPacket)
 		{
 			_GameServerInfo.Index = pSession->iClientID >> 48;
 			pPacket->PopData((char*)_GameServerInfo.ServerName, sizeof(_GameServerInfo.ServerName));
-			_GameServerInfo.Addr = pSession->Info.Addr;
 			pSession->Info.byServerType = dfSERVER_TYPE_GAME;
 		}
 		else if (dfSERVER_TYPE_CHAT == ServerType)
 		{
 			_ChatServerInfo.Index = pSession->iClientID >> 48;
 			pPacket->PopData((char*)_ChatServerInfo.ServerName, sizeof(_ChatServerInfo.ServerName));
-			_ChatServerInfo.Addr = pSession->Info.Addr;
 			pSession->Info.byServerType = dfSERVER_TYPE_CHAT;
 		}
 		else if (dfSERVER_TYPE_MONITOR == ServerType)

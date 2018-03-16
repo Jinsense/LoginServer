@@ -253,8 +253,8 @@ bool CNetServer::ServerInit()
 bool CNetServer::ClientShutdown(st_Session *pSession)
 {
 	int _iRetval;
-	m_Log->Log(const_cast<WCHAR*>(L"Debug"), LOG_SYSTEM,
-		const_cast<WCHAR*>(L"ClientShutdown - shutdown call"));
+//	m_Log->Log(const_cast<WCHAR*>(L"Debug"), LOG_SYSTEM,
+//		const_cast<WCHAR*>(L"ClientShutdown - shutdown call"));
 	_iRetval = shutdown(pSession->sock, SD_BOTH);
 	if (false == _iRetval)
 	{

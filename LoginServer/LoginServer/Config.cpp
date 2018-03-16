@@ -8,6 +8,10 @@ CConfig::CConfig()
 	BIND_IP_SIZE = eNUM_BUF;
 	BIND_PORT = NULL;
 
+	ZeroMemory(&CHAT_IP, sizeof(CHAT_IP));
+	CHAT_IP_SIZE = eNUM_BUF;
+	CHAT_PORT = NULL;
+
 	ZeroMemory(&LAN_BIND_IP, sizeof(LAN_BIND_IP));
 	LAN_BIND_IP_SIZE = eNUM_BUF;
 	LAN_BIND_PORT = NULL;
@@ -52,6 +56,13 @@ bool CConfig::Set()
 		return false;
 	_Parse.UTF8toUTF16(IP, BIND_IP, sizeof(BIND_IP));
 	res = _Parse.GetValue("BIND_PORT", &BIND_PORT);
+	if (false == res)
+		return false;
+	res = _Parse.GetValue("CHAT_IP", &IP[0], &CHAT_IP_SIZE);
+	if (false == res)
+		return false;
+	_Parse.UTF8toUTF16(IP, CHAT_IP, sizeof(CHAT_IP));
+	res = _Parse.GetValue("CHAT_PORT", &CHAT_PORT);
 	if (false == res)
 		return false;
 	_Parse.GetValue("LAN_BIND_IP", &IP[0], &LAN_BIND_IP_SIZE);

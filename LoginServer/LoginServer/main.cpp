@@ -16,6 +16,7 @@ int main()
 		wprintf(L"[Server :: Main]	Config Error\n");
 		return 0;
 	}
+	_LoginServer.ConfigSet();
 
 	if (false == _LoginServer._AccountDB.Set(_LoginServer._Config.ACCOUNT_IP, 
 		_LoginServer._Config.ACCOUNT_USER, _LoginServer._Config.ACCOUNT_PASSWORD,

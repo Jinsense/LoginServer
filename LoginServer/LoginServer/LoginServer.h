@@ -41,7 +41,7 @@ typedef struct st_Player
 	in_addr		_ClientIP;				//	클라이언트 접속 IP
 	unsigned short _ClientPort;			//	클라이언트 접속 Port
 
-	int		_Status;				//	클라이언트 상태 
+	int			_Status;				//	클라이언트 상태 
 	INT64		_Parameter;				//	세션키 파라미터 확인
 }PLAYER;
 
@@ -88,7 +88,7 @@ public:
 	/////////////////////////////////////////////////////////////
 	// 사용자 관리함수들.  
 	/////////////////////////////////////////////////////////////
-
+	void		ConfigSet();
 	void		UTF8toUTF16(const char *szText, WCHAR *szBuf, int iBufLen);
 	void		UTF16toUTF8(WCHAR *szText, char *szBuf, int iBufLen);
 

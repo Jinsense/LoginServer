@@ -21,6 +21,10 @@ public:
 	int BIND_IP_SIZE;
 	int BIND_PORT;
 
+	WCHAR CHAT_IP[16];
+	int CHAT_IP_SIZE;
+	int CHAT_PORT;
+
 	WCHAR LAN_BIND_IP[20];
 	int LAN_BIND_IP_SIZE;
 	int LAN_BIND_PORT;
