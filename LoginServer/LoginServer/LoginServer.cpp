@@ -70,7 +70,7 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 		*pPacket >> pPlayer->_AccountNo;
 		pPacket->PopData((char*)&pPlayer->_SessionKey, sizeof(pPlayer->_SessionKey));
 		
-		AcquireSRWLockExclusive(&_PlayerList_srwlock);
+		AcquireSRWLockExclusive(&_DB_srwlock);
 //		_AccountDB.Query(L"BEGIN");
 		bRes = _AccountDB.Query(L"SELECT * FROM v_account WHERE accountno = %d", pPlayer->_AccountNo);
 //		iNum = _AccountDB.FetchNum();
@@ -81,7 +81,7 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 			DisconnectPlayer(iClientID, dfLOGIN_STATUS_FAIL);
 //			_AccountDB.Query(L"ROLLBACK");
 			_AccountDB.FreeResult();
-			ReleaseSRWLockExclusive(&_PlayerList_srwlock);
+			ReleaseSRWLockExclusive(&_DB_srwlock);
 			return false;
 		}
 
@@ -120,7 +120,7 @@ bool CLoginServer::OnRecv(unsigned __int64 iClientID, CPacket *pPacket)
 //			ReleaseSRWLockExclusive(&_PlayerList_srwlock);
 			return false;
 		}
-		ReleaseSRWLockExclusive(&_PlayerList_srwlock);
+		ReleaseSRWLockExclusive(&_DB_srwlock);
 		/*
 		pPlayer->_Status = dfPLAYER_LOGINSERVER_REQ;
 		//	DB의 세션 상태 변경 
